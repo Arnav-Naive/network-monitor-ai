@@ -1,5 +1,5 @@
 # Day 00 — Pre-Internship Research
-**Date:** 2025-05-04  
+**Date:** 2026-05-04  
 **Project:** AI-Powered Network Switch Monitoring System  
 **Source:** Self-study (NetworkChuck, Gate Smashers, networklessons.com)
 
