@@ -1,4 +1,43 @@
-data/
+# Virtual Environment
+.venv/
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Environment variables
 .env
+
+# Django stuff
+db.sqlite3
+media/
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# CSV / data (optional)
+# Uncomment if data is generated and large
+data/
