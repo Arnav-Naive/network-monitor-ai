@@ -35,6 +35,12 @@
         }
     </style>
 </head>
+<script>
+    // Auto-refresh page every 10 seconds
+    setTimeout(function(){
+        location.reload();
+    }, 10000);
+</script>
 <body>
     <h1>Network Switch Monitor</h1>
     
@@ -43,26 +49,36 @@
             <thead>
                 <tr>
                     <th>Timestamp</th>
-                    <th>CPU Usage (%)</th>
-                    <th>Temperature (°C)</th>
+                    <th>CPU (%)</th>
+                    <th>Memory (%)</th>
+                    <th>Temp (°C)</th>
                     <th>Bandwidth (Mbps)</th>
-                    <th>Port Status</th>
+                    <th>Interface</th>
+                    <th>CRC Errors</th>
+                    <th>Reliability</th>
+                    <th>TX (Mbps)</th>
+                    <th>RX (Mbps)</th>
                     <th>Anomalies</th>
                 </tr>
             </thead>
             <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>{{ log.timestamp }}</td>
-                    <td>{{ log.cpu_usage }}</td>
-                    <td>{{ log.temperature }}</td>
-                    <td>{{ log.bandwidth }}</td>
-                    <td>{{ log.port_status }}</td>
-                    <td class="{% if log.anomalies != 'None' %}anomaly{% endif %}">
-                        {{ log.anomalies }}
-                    </td>
-                </tr>
-                {% endfor %}
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.cpu_usage }}</td>
+                <td>{{ log.memory_usage }}</td>
+                <td>{{ log.temperature }}</td>
+                <td>{{ log.bandwidth }}</td>
+                <td>{{ log.interface_status }}</td>
+                <td>{{ log.crc_errors }}</td>
+                <td>{{ log.reliability }}</td>
+                <td>{{ log.tx_rate }}</td>
+                <td>{{ log.rx_rate }}</td>
+                <td class="{% if log.anomalies != 'None' %}anomaly{% endif %}">
+                    {{ log.anomalies }}
+                </td>
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     {% else %}

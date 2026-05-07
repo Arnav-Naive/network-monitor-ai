@@ -13,9 +13,14 @@ def get_snmp_data():
     return {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "cpu_usage": random.randint(10, 95),
+        "memory_usage": random.randint(20, 90),
         "temperature": random.randint(30, 85),
         "bandwidth": random.randint(100, 900),
-        "port_status": random.choice([1, 1, 1, 0]),
+        "interface_status": random.choice([1, 1, 1, 0]),  # 1=up, 0=down
+        "crc_errors": random.randint(0, 5),
+        "reliability": f"{random.randint(250, 255)}/255",
+        "tx_rate": random.randint(100, 1000),  # Mbps
+        "rx_rate": random.randint(100, 1000),
     }
 
 
