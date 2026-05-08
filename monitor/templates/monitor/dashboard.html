@@ -64,7 +64,7 @@
             <tbody>
             {% for log in logs %}
             <tr>
-                <td>{{ log.timestamp }}</td>
+                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
                 <td>{{ log.cpu_usage }}</td>
                 <td>{{ log.memory_usage }}</td>
                 <td>{{ log.temperature }}</td>
