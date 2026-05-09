@@ -38,10 +38,8 @@ dist/
 htmlcov/
 .pytest_cache/
 
-# CSV / data (optional)
-# Uncomment if data is generated and large
+# CSV / data
 data/
 
-# ML models and database
+# ML models
 *.pkl
-db.sqlite3
