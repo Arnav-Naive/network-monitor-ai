@@ -33,6 +33,11 @@
             color: red;
             font-weight: bold;
         }
+        .ml-anomaly {
+            background-color: #fff3cd;
+            font-weight: bold;
+            color: #856404;
+        }
     </style>
 </head>
 <script>
@@ -74,7 +79,7 @@
                 <td>{{ log.reliability }}</td>
                 <td>{{ log.tx_rate }}</td>
                 <td>{{ log.rx_rate }}</td>
-                <td class="{% if log.anomalies != 'None' %}anomaly{% endif %}">
+                <td class="{% if 'ML DETECTED' in log.anomalies %}ml-anomaly{% elif log.anomalies != 'None' %}anomaly{% endif %}">
                     {{ log.anomalies }}
                 </td>
             </tr>

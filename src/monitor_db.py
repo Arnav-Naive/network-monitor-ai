@@ -16,6 +16,20 @@ django.setup()
 
 from monitor.models import SwitchMetric
 
+import pickle
+import numpy as np
+
+# Load trained model
+try:
+    with open('anomaly_model.pkl', 'rb') as f:
+        ml_model = pickle.load(f)
+    print("✓ ML model loaded\n")
+    USE_ML = True
+except FileNotFoundError:
+    print("⚠ No ML model found. Run train_model.py first.")
+    print("Using threshold-based detection for now.\n")
+    USE_ML = False
+
 def get_snmp_data():
     return {
         "cpu_usage": random.randint(10, 95),
@@ -37,14 +51,32 @@ THRESHOLDS = {
 
 def detect_anomaly(data):
     anomalies = []
+    
+    if USE_ML:
+        # ML-based detection
+        features = np.array([[
+            data['cpu_usage'],
+            data['memory_usage'],
+            data['temperature'],
+            data['bandwidth'],
+            data['crc_errors'],
+            data['tx_rate'],
+            data['rx_rate']
+        ]])
+        
+        prediction = ml_model.predict(features)[0]
+        
+        if prediction == -1:  # -1 = anomaly
+            anomalies.append("ML DETECTED ANOMALY")
+    
+    # Keep threshold checks too (backup)
     if data["cpu_usage"] > THRESHOLDS["cpu_usage"]:
         anomalies.append(f"HIGH CPU: {data['cpu_usage']}%")
     if data["temperature"] > THRESHOLDS["temperature"]:
         anomalies.append(f"HIGH TEMP: {data['temperature']}C")
-    if data["bandwidth"] > THRESHOLDS["bandwidth"]:
-        anomalies.append(f"HIGH BANDWIDTH: {data['bandwidth']} Mbps")
     if data["interface_status"] == 0:
         anomalies.append("PORT DOWN")
+    
     return anomalies
 
 print("Starting Network Monitor (Database mode)...\n")

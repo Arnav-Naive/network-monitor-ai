@@ -41,3 +41,7 @@ htmlcov/
 # CSV / data (optional)
 # Uncomment if data is generated and large
 data/
+
+# ML models and database
+*.pkl
+db.sqlite3
