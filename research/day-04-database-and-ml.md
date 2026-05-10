@@ -54,10 +54,13 @@ Much smarter — reduces false alarms, catches subtle issues.
 
 **Current architecture:**
 Monitor Script → Collects data
+
 ↓
 Database (SQLite) → Stores metrics
+
 ↓
 ML Model → Detects anomalies
+
 ↓
 Dashboard → Displays + highlights
 
