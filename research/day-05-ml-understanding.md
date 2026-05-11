@@ -1,51 +1,81 @@
-What You Actually Built (Simple Explanation)
-Problem: How do we know if something is wrong with a switch?
-Old way (thresholds):
-if CPU > 80:
-    alert("Problem!")
-Problem with this: What if 85% CPU is normal for Switch A but weird for Switch B?
+# Day 05 — ML Understanding (Isolation Forest)
 
-New way (ML):
-Think of it like this — imagine you're watching a friend's daily routine for 2 weeks:
+**Date:** 2026-05-09 to 2026-05-11
 
-Wake up 7am
-Breakfast 8am
-Work 9am-5pm
-Dinner 7pm
-Sleep 11pm
+## What I Learned
 
-One day they wake up at 3am and start cooking. That's weird. Not because 3am is "bad" — it's just unusual for THEM.
-That's what Isolation Forest does. It watches the switch's behavior and says "this pattern is weird for THIS switch."
+### Anomaly Detection Basics
+- System for identifying rare events or outliers
+- Deviates significantly from norm in dataset
+- Can signal: isolated issues, interesting patterns in data
 
-Line-by-Line Breakdown (Hinglish)
-Training script (train_model.py):
-pythondata = SwitchMetric.objects.all().values_list(...)
-Translation: Database se saara data nikal lo (CPU, memory, temp, etc.)
-pythonX = np.array(data)
-Translation: Data ko ek table format mein convert karo (like Excel rows)
-pythonmodel = IsolationForest(contamination=0.1)
-Translation: Ek model banao jo expect karta hai ki 10% data abnormal hoga
-pythonmodel.fit(X)
-Translation: Model ko data dikhao — woh patterns seekh jayega ("normal" kya hai)
-pythonpickle.dump(model, f)
-Translation: Seekha hua model ko file mein save karo (taaki dubara train na karna pade)
+### Why Isolation Forest?
+- **Unsupervised algorithm** - checks on clusters
+- Particularly effective in identifying outliers/anomalies
+- Dataset outliers are easier to isolate
 
-Monitor script (monitor_db.py):
-pythonml_model = pickle.load(f)
-Translation: Saved model ko load karo
-pythonfeatures = np.array([[cpu, memory, temp, ...]])
-Translation: Naya reading ko same table format mein convert karo
-pythonprediction = ml_model.predict(features)[0]
-Translation: Model se poocho: "ye reading normal hai ya abnormal?"
-pythonif prediction == -1:
-    anomalies.append("ML DETECTED ANOMALY")
-Translation: Agar model bole "abnormal" (-1), toh alert bhejo
+### How It Works
 
-The Magic Part
-You DON'T tell the model "CPU > 80 is bad."
-The model figures it out itself by looking at patterns:
+**Core Concept:**
+Anomalies are easier to isolate (separate) than normal points.
 
-"Oh, this switch usually runs at 30-40% CPU"
-"Today it's at 85%? That's weird for this one specifically"
-Alert!
+**Process:**
+1. Build multiple isolation trees (random forest)
+2. For each data point, measure path length (how many splits needed to isolate it)
+3. Anomalies have **shorter paths** (isolated at depth 2-3)
+4. Normal points have **longer paths** (isolated at depth 6-12)
 
+**Scoring:**
+- Average path length across 100 trees
+- Score close to 1 → highly anomalous
+- Score < 0.5 → normal
+- Score ≈ 0.5 → cannot decide (need to spend on ≈0.5 on that part)
+
+### Key Parameters
+
+**contamination = 0.1**
+- Tells model: "expect roughly 10% of data points to be anomalies"
+- Controls sensitivity
+- Example: If 1000 data points, model treats ~100 as potential anomalies
+- Can adjust: 0.02 for stricter (2%), 0.05 for moderate (5%)
+
+**random_state = 42**
+- Ensures reproducibility
+- Same results each time model runs
+
+### Advantages
+- Linear time complexity → O(n)
+- Process will be faster
+- Works well with high-dimensional data
+- No need for labeled training data
+
+### Limitations
+- Cannot detect anomalies if dataset is small
+- Difficult to setup "contamination" hyperparameter
+- May give false positives in borderline cases
+
+### In My Project
+
+**Training (`train_model.py`):**
+```python
+model = IsolationForest(contamination=0.1, random_state=42)
+model.fit(X)  # X = 341 samples, 7 features each
+```
+
+**Prediction (`monitor_db.py`):**
+```python
+prediction = model.predict(new_data)
+# Returns: -1 = anomaly, +1 = normal
+```
+
+---
+
+**What I understand:**
+- Anomalies are isolated faster (shorter path in tree)
+- Model builds random trees and averages their decisions
+- Contamination controls how strict the detection is
+- Works without labeled data (unsupervised)
+
+**What I need to learn more:**
+- Deep mathematical calculations behind tree building
+- Other algorithms like DBSCAN, Local Outlier Factor (not needed for this project)
