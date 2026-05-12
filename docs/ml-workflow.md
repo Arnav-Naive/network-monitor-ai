@@ -9,9 +9,9 @@ flowchart LR
     C -->|Learn Patterns| D[Trained Model]
     D -->|Save to Disk| E[anomaly_model.pkl]
     
-    style A fill:#e1f5ff
-    style C fill:#ffe1e1
-    style E fill:#fff4e1
+    style A fill:#e1f5ff,color:#000
+    style C fill:#ffe1e1,color:#000
+    style E fill:#fff4e1,color:#000
 ```
 
 **Features Used:**
