@@ -1,8 +1,46 @@
 from django.shortcuts import render
 from .models import SwitchMetric
+from django.db.models import Count, Q
+import json
 
 def dashboard_view(request):
-    # Get last 50 entries from database
+    # Get last 50 entries for table
     logs = SwitchMetric.objects.all()[:50]
     
-    return render(request, 'monitor/dashboard.html', {'logs': logs})
+    # Get last 50 for chart (reverse order for chronological)
+    chart_data = list(SwitchMetric.objects.all()[:50])
+    chart_data.reverse()
+    
+    # Summary statistics
+    total_logs = SwitchMetric.objects.count()
+    ml_anomalies = SwitchMetric.objects.filter(
+        anomalies__icontains='ML DETECTED'
+    ).count()
+    normal_logs = SwitchMetric.objects.filter(
+        Q(anomalies__isnull=True) | Q(anomalies='None')
+    ).count()
+    
+    # Calculate percentages
+    normal_percentage = (normal_logs / total_logs * 100) if total_logs > 0 else 0
+    
+    # Prepare chart data
+    timestamps = [log.timestamp.strftime('%H:%M:%S') for log in chart_data]
+    cpu_data = [log.cpu_usage for log in chart_data]
+    temp_data = [log.temperature for log in chart_data]
+    memory_data = [log.memory_usage for log in chart_data]
+    
+# Prepare chart data as JSON strings
+    
+    context = {
+        'logs': logs,
+        'total_logs': total_logs,
+        'ml_anomalies': ml_anomalies,
+        'normal_logs': normal_logs,
+        'normal_percentage': round(normal_percentage, 1),
+        'timestamps': json.dumps(timestamps),
+        'cpu_data': json.dumps(cpu_data),
+        'temp_data': json.dumps(temp_data),
+        'memory_data': json.dumps(memory_data),
+    }
+    
+    return render(request, 'monitor/dashboard.html', context)

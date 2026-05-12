@@ -1,93 +1,93 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Network Monitor Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .anomaly {
-            color: red;
-            font-weight: bold;
-        }
-        .ml-anomaly {
-            background-color: #fff3cd;
-            font-weight: bold;
-            color: #856404;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'monitor/css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<script>
-    // Auto-refresh page every 10 seconds
-    setTimeout(function(){
-        location.reload();
-    }, 10000);
-</script>
 <body>
-    <h1>Network Switch Monitor</h1>
+    <div class="container">
+        <header>
+            <h1>🔧 Network Switch Monitor — AI-Powered</h1>
+        </header>
+        
+        <!-- Summary Cards -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <h3>Total Logs</h3>
+                <div class="stat-value">{{ total_logs }}</div>
+            </div>
+            <div class="stat-card anomalies">
+                <h3>ML Anomalies Detected</h3>
+                <div class="stat-value">{{ ml_anomalies }}</div>
+            </div>
+            <div class="stat-card normal">
+                <h3>System Health</h3>
+                <div class="stat-value">{{ normal_percentage }}%</div>
+            </div>
+        </div>
+        
+        <!-- Chart -->
+        <div class="chart-container">
+            <h2>📊 Real-Time Metrics (Last 50 Readings)</h2>
+            <canvas id="metricsChart"></canvas>
+        </div>
+        
+        <!-- Hidden div to pass data to JS -->
+        <div id="chartData" 
+             data-timestamps='{{ timestamps|safe }}'
+             data-cpu='{{ cpu_data|safe }}'
+             data-temp='{{ temp_data|safe }}'
+             data-memory='{{ memory_data|safe }}'
+             style="display: none;">
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>CPU (%)</th>
+                        <th>Memory (%)</th>
+                        <th>Temp (°C)</th>
+                        <th>Bandwidth (Mbps)</th>
+                        <th>Interface</th>
+                        <th>CRC Errors</th>
+                        <th>TX (Mbps)</th>
+                        <th>RX (Mbps)</th>
+                        <th>Anomalies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ log.cpu_usage }}</td>
+                        <td>{{ log.memory_usage }}</td>
+                        <td>{{ log.temperature }}</td>
+                        <td>{{ log.bandwidth }}</td>
+                        <td>{{ log.interface_status }}</td>
+                        <td>{{ log.crc_errors }}</td>
+                        <td>{{ log.tx_rate }}</td>
+                        <td>{{ log.rx_rate }}</td>
+                        <td>
+                            {% if 'ML DETECTED' in log.anomalies %}
+                                <span class="ml-anomaly">{{ log.anomalies }}</span>
+                            {% elif log.anomalies != 'None' %}
+                                <span class="anomaly">{{ log.anomalies }}</span>
+                            {% else %}
+                                {{ log.anomalies }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
     
-    {% if logs %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>CPU (%)</th>
-                    <th>Memory (%)</th>
-                    <th>Temp (°C)</th>
-                    <th>Bandwidth (Mbps)</th>
-                    <th>Interface</th>
-                    <th>CRC Errors</th>
-                    <th>Reliability</th>
-                    <th>TX (Mbps)</th>
-                    <th>RX (Mbps)</th>
-                    <th>Anomalies</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
-                <td>{{ log.cpu_usage }}</td>
-                <td>{{ log.memory_usage }}</td>
-                <td>{{ log.temperature }}</td>
-                <td>{{ log.bandwidth }}</td>
-                <td>{{ log.interface_status }}</td>
-                <td>{{ log.crc_errors }}</td>
-                <td>{{ log.reliability }}</td>
-                <td>{{ log.tx_rate }}</td>
-                <td>{{ log.rx_rate }}</td>
-                <td class="{% if 'ML DETECTED' in log.anomalies %}ml-anomaly{% elif log.anomalies != 'None' %}anomaly{% endif %}">
-                    {{ log.anomalies }}
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No monitoring data available. Run the monitor script first.</p>
-    {% endif %}
+    <script src="{% static 'monitor/js/dashboard.js' %}"></script>
 </body>
 </html>
