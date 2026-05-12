@@ -37,10 +37,10 @@ flowchart TD
     F -->|Save to DB| G[Dashboard Shows Alert]
     E -->|Save to DB| G
     
-    style A fill:#e1f5ff
-    style D fill:#ffe1e1
-    style F fill:#ffcccc
-    style G fill:#e1ffe1
+    style A fill:#e1f5ff,color:#000
+    style D fill:#ffe1e1,color:#000
+    style F fill:#ffcccc,color:#000
+    style G fill:#e1ffe1,color:#000
 ```
 
 ## How Isolation Forest Works (Simplified)
