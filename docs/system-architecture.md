@@ -19,6 +19,9 @@ flowchart TD
     style D fill:#fff4e1
     style F fill:#ffe1e1
     style I fill:#e1ffe1
+    style D fill:#fff4e1,color:#000
+    style F fill:#ffe1e1,color:#000
+    style I fill:#e1ffe1,color:#000
 ```
 
 ## Data Flow
