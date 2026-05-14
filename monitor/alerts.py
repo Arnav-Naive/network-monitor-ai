@@ -1,8 +1,19 @@
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+from .models import SwitchMetric
+
+# Track last alert time (in memory)
+last_alert_time = None
 
 def send_anomaly_alert(metric, anomalies):
-    """Send email when ML detects anomaly"""
+    global last_alert_time
+    
+    # Cooldown: only send every 30 minutes
+    if last_alert_time and timezone.now() - last_alert_time < timedelta(minutes=30):
+        return False
+    
     subject = f"⚠ Network Anomaly Detected - {metric.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
     
     message = f"""
@@ -26,9 +37,10 @@ Login to dashboard: http://localhost:8000
             subject,
             message,
             settings.EMAIL_HOST_USER,
-            [settings.EMAIL_HOST_USER],  # sends to yourself
+            [settings.EMAIL_HOST_USER],
             fail_silently=False,
         )
+        last_alert_time = timezone.now()
         print(f"  📧 Alert email sent!")
         return True
     except Exception as e:
