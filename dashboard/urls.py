@@ -22,4 +22,5 @@ from monitor import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard_view, name='dashboard'),
+    path('export/', views.export_csv, name='export_csv'),
 ]

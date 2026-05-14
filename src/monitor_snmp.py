@@ -10,6 +10,8 @@ from datetime import datetime
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
 django.setup()
 
+from monitor.alerts import send_anomaly_alert
+
 from monitor.models import SwitchMetric
 
 # pysnmp v7 imports (new API)
@@ -125,10 +127,11 @@ def detect_anomaly(data):
     return anomalies
 
 async def save_to_database(data, anomalies):
-    """Async wrapper for Django database save"""
     @sync_to_async
     def create_metric():
-        return SwitchMetric.objects.create(
+        from monitor.alerts import send_anomaly_alert
+        
+        metric = SwitchMetric.objects.create(
             cpu_usage=data['cpu_usage'],
             memory_usage=data['memory_usage'],
             temperature=data['temperature'],
@@ -140,7 +143,13 @@ async def save_to_database(data, anomalies):
             rx_rate=data['rx_rate'],
             anomalies=', '.join(anomalies) if anomalies else None
         )
-
+        
+        # Send email only for ML detections (not every threshold alert)
+        if anomalies and 'ML DETECTED' in ', '.join(anomalies):
+            send_anomaly_alert(metric, anomalies)
+        
+        return metric
+    
     return await create_metric()
 
 async def monitor_loop():

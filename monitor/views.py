@@ -1,3 +1,6 @@
+import csv
+from django.http import HttpResponse
+
 from django.shortcuts import render
 from .models import SwitchMetric
 from django.db.models import Count, Q
@@ -44,3 +47,32 @@ def dashboard_view(request):
     }
     
     return render(request, 'monitor/dashboard.html', context)
+
+def export_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="network_monitor_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Timestamp', 'CPU (%)', 'Memory (%)', 'Temperature (°C)',
+        'Bandwidth (Mbps)', 'Interface', 'CRC Errors',
+        'Reliability', 'TX (Mbps)', 'RX (Mbps)', 'Anomalies'
+    ])
+    
+    logs = SwitchMetric.objects.all()
+    for log in logs:
+        writer.writerow([
+            log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            log.cpu_usage,
+            log.memory_usage,
+            log.temperature,
+            log.bandwidth,
+            'UP' if log.interface_status else 'DOWN',
+            log.crc_errors,
+            log.reliability,
+            log.tx_rate,
+            log.rx_rate,
+            log.anomalies or 'None'
+        ])
+    
+    return response

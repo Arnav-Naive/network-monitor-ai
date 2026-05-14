@@ -114,3 +114,18 @@ tr:hover {
     padding: 4px 8px;
     border-radius: 4px;
 }
+
+.export-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.export-btn:hover {
+    background-color: #388E3C;
+}
