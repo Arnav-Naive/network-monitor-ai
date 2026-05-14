@@ -43,3 +43,6 @@ data/
 
 # ML models
 *.pkl
+
+# SNMP simulation data
+snmp_data/
