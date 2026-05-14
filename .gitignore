@@ -46,3 +46,6 @@ data/
 
 # SNMP simulation data
 snmp_data/
+
+# Docker
+docker-snmp/scripts/*.sh.bak
