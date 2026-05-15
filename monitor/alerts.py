@@ -11,7 +11,8 @@ def send_anomaly_alert(metric, anomalies):
     global last_alert_time
     
     # Cooldown: only send every 30 minutes
-    if last_alert_time and timezone.now() - last_alert_time < timedelta(minutes=30):
+    COOLDOWN_MINUTES = 30  # Change to 1 for demo, 30 for production
+    if last_alert_time and timezone.now() - last_alert_time < timedelta(minutes=COOLDOWN_MINUTES):
         return False
     
     subject = f"⚠ Network Anomaly Detected - {metric.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
