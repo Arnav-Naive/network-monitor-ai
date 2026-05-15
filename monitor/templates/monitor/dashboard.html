@@ -11,9 +11,34 @@
         <header>
             <h1>🔧 Network Switch Monitor — AI-Powered</h1>
         </header>
+        <!-- Export Button -->
         <div style="text-align: right; margin-bottom: 15px;">
             <a href="/export/" class="export-btn">⬇ Export CSV</a>
         </div>        
+        <!-- Filters -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Time Range:</label>
+                <a href="?range=1h&filter={{ filter_type }}" 
+                class="filter-btn {% if date_range == '1h' %}active{% endif %}">Last 1h</a>
+                <a href="?range=24h&filter={{ filter_type }}" 
+                class="filter-btn {% if date_range == '24h' %}active{% endif %}">Last 24h</a>
+                <a href="?range=7d&filter={{ filter_type }}" 
+                class="filter-btn {% if date_range == '7d' %}active{% endif %}">Last 7d</a>
+                <a href="?range=all&filter={{ filter_type }}" 
+                class="filter-btn {% if date_range == 'all' %}active{% endif %}">All Time</a>
+            </div>
+            <div class="filter-group">
+                <label>Show:</label>
+                <a href="?range={{ date_range }}&filter=all" 
+                class="filter-btn {% if filter_type == 'all' %}active{% endif %}">All</a>
+                <a href="?range={{ date_range }}&filter=anomalies" 
+                class="filter-btn anomaly-btn {% if filter_type == 'anomalies' %}active{% endif %}">Anomalies Only</a>
+                <a href="?range={{ date_range }}&filter=normal" 
+                class="filter-btn normal-btn {% if filter_type == 'normal' %}active{% endif %}">Normal Only</a>
+            </div>
+        </div>
+        
         <!-- Summary Cards -->
         <div class="stats-grid">
             <div class="stat-card total">

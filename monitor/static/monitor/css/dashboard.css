@@ -129,3 +129,57 @@ tr:hover {
 .export-btn:hover {
     background-color: #388E3C;
 }
+
+/* Filter CSS */
+.filter-bar {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #555;
+    font-size: 14px;
+}
+
+.filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f0f0f0;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: #4CAF50;
+    color: white;
+}
+
+.filter-btn.active {
+    background: #4CAF50;
+    color: white;
+}
+
+.anomaly-btn.active {
+    background: #f44336;
+}
+
+.normal-btn.active {
+    background: #2196F3;
+}
