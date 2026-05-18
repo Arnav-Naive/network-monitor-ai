@@ -427,11 +427,9 @@ asgiref>=3.7
 -----------------------------------
 -----------------------------------
 ```mermaid
----
-title: Day 09 — Docker SNMP Network Monitor Architecture
----
-
 flowchart TD
+
+    TITLE["Day 09 — Docker SNMP Network Monitor Architecture"]
 
     subgraph WIN["🖥️ Windows Machine"]
 
@@ -451,70 +449,49 @@ flowchart TD
         end
 
         subgraph DOCKER["🐳 Docker Container — virtual-switch"]
-            subgraph UBUNTU["Ubuntu 22.04 (Linux inside Windows)"]
-                S1["snmpd<br>(SNMP Daemon)"]
 
-                subgraph SCRIPTS["Shell Scripts /usr/local/bin/"]
-                    SC1["cpu.sh<br>random 40–90"]
-                    SC2["memory.sh<br>random 50–85"]
-                    SC3["temperature.sh<br>random 35–75"]
-                    SC4["bandwidth.sh<br>random 200–900"]
+            subgraph UBUNTU["Ubuntu 22.04"]
+
+                S1["snmpd"]
+
+                subgraph SCRIPTS["Shell Scripts"]
+                    SC1["cpu.sh"]
+                    SC2["memory.sh"]
+                    SC3["temperature.sh"]
+                    SC4["bandwidth.sh"]
                 end
             end
         end
 
-        ML["🤖 ML Model<br>anomaly_model.pkl<br>(IsolationForest)"]
+        ML["IsolationForest ML Model"]
 
     end
 
     BROWSER["🌐 Browser"]
 
-    %% Flow
+    TITLE --> WIN
+
     A1 --> A2
     A2 --> A3
 
-    A3 -- "SNMP GET request<br>UDP Port 161<br>community: public" --> S1
+    A3 --> S1
 
     S1 --> SC1
     S1 --> SC2
     S1 --> SC3
     S1 --> SC4
 
-    SC1 --> S1
-    SC2 --> S1
-    SC3 --> S1
-    SC4 --> S1
+    S1 --> A3
 
-    S1 -- "SNMP Response" --> A3
-
-    A3 --> A2
     A2 --> A4
-
     A4 --> ML
     ML --> A4
 
     A4 --> A5
-    A2 --> A5
-
     A5 --> D1
-    D1 --> D2
 
+    D1 --> D2
     D2 --> D3
     D3 --> D4
     D4 --> BROWSER
-
-    A5 -- "repeat every 10 sec" --> A2
-
-    %% Styling
-    classDef pyBox fill:#3572A5,color:#fff,stroke:#2a5a8a
-    classDef djangoBox fill:#0C4B33,color:#fff,stroke:#093b27
-    classDef dockerBox fill:#0db7ed,color:#000,stroke:#0a94c7
-    classDef mlBox fill:#7c3aed,color:#fff,stroke:#6025c7
-    classDef browserBox fill:#e5e7eb,color:#111,stroke:#9ca3af
-
-    class A1,A2,A3,A4,A5 pyBox
-    class D1,D2,D3,D4 djangoBox
-    class S1,UBUNTU,SC1,SC2,SC3,SC4 dockerBox
-    class ML mlBox
-    class BROWSER browserBox
 ```
