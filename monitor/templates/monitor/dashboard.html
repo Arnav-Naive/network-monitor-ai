@@ -115,7 +115,7 @@
                         <td>
                             {% if 'ML DETECTED' in log.anomalies %}
                                 <span class="ml-anomaly">{{ log.anomalies }}</span>
-                            {% elif log.anomalies != 'None' %}
+                            {% elif log.anomalies and log.anomalies != 'None' %}
                                 <span class="anomaly">{{ log.anomalies }}</span>
                             {% else %}
                                 {{ log.anomalies }}
