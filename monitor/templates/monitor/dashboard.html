@@ -37,6 +37,17 @@
                 <a href="?range={{ date_range }}&filter=normal" 
                 class="filter-btn normal-btn {% if filter_type == 'normal' %}active{% endif %}">Normal Only</a>
             </div>
+                <div class="filter-group"> 
+                <label>Switch:</label>
+                <a href="?range={{ date_range }}&filter={{ filter_type }}&switch=all"
+                class="filter-btn {% if switch_id == 'all' %}active{% endif %}">All</a>
+                {% for switch in switches %}
+                    <a href="?range={{ date_range }}&filter={{ filter_type }}&switch={{ switch.id }}"
+                        class="filter-btn {% if switch_id == switch.id|stringformat:'s' %}active{% endif %}">
+                            {{ switch.name }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
         
         <!-- Summary Cards -->
@@ -76,6 +87,7 @@
                 <thead>
                     <tr>
                         <th>Timestamp</th>
+                        <th>Switch</th>
                         <th>CPU (%)</th>
                         <th>Memory (%)</th>
                         <th>Temp (°C)</th>
@@ -91,6 +103,7 @@
                     {% for log in logs %}
                     <tr>
                         <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ log.switch.name }}</td>
                         <td>{{ log.cpu_usage }}</td>
                         <td>{{ log.memory_usage }}</td>
                         <td>{{ log.temperature }}</td>

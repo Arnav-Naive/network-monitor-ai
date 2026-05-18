@@ -1,18 +1,17 @@
 from django.shortcuts import render
-from .models import SwitchMetric
-from django.db.models import Count, Q
+from .models import SwitchMetric, Switch
+from django.db.models import Q
 from django.utils import timezone
 import json
 import csv
 from django.http import HttpResponse
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 def dashboard_view(request):
-    # Get filter parameters from URL
-    filter_type = request.GET.get('filter', 'all')      # all / anomalies / normal
-    date_range = request.GET.get('range', '24h')         # 1h / 24h / 7d / all
+    filter_type = request.GET.get('filter', 'all')
+    date_range = request.GET.get('range', '24h')
+    switch_id = request.GET.get('switch', 'all')
 
-    # Date range filter
     now = timezone.now()
     if date_range == '1h':
         from_time = now - timedelta(hours=1)
@@ -23,50 +22,41 @@ def dashboard_view(request):
     else:
         from_time = None
 
-    # Base queryset
-    logs_qs = SwitchMetric.objects.all()
+    logs_qs = SwitchMetric.objects.select_related('switch').all()
+
     if from_time:
         logs_qs = logs_qs.filter(timestamp__gte=from_time)
-
-    # Anomaly type filter
+    if switch_id != 'all':
+        logs_qs = logs_qs.filter(switch_id=switch_id)
     if filter_type == 'anomalies':
         logs_qs = logs_qs.exclude(Q(anomalies__isnull=True) | Q(anomalies='None'))
     elif filter_type == 'normal':
         logs_qs = logs_qs.filter(Q(anomalies__isnull=True) | Q(anomalies='None'))
 
     logs = logs_qs[:50]
-
-    # Chart data
     chart_data = list(logs_qs[:50])
     chart_data.reverse()
 
-    # Summary stats (always from full DB)
     total_logs = SwitchMetric.objects.count()
-    ml_anomalies = SwitchMetric.objects.filter(
-        anomalies__icontains='ML DETECTED'
-    ).count()
-    normal_logs = SwitchMetric.objects.filter(
-        Q(anomalies__isnull=True) | Q(anomalies='None')
-    ).count()
+    ml_anomalies = SwitchMetric.objects.filter(anomalies__icontains='ML DETECTED').count()
+    normal_logs = SwitchMetric.objects.filter(Q(anomalies__isnull=True) | Q(anomalies='None')).count()
     normal_percentage = round((normal_logs / total_logs * 100), 1) if total_logs > 0 else 0
 
-    timestamps = [log.timestamp.strftime('%H:%M:%S') for log in chart_data]
-    cpu_data = [log.cpu_usage for log in chart_data]
-    temp_data = [log.temperature for log in chart_data]
-    memory_data = [log.memory_usage for log in chart_data]
+    switches = Switch.objects.filter(is_active=True)
 
     context = {
         'logs': logs,
         'total_logs': total_logs,
         'ml_anomalies': ml_anomalies,
-        'normal_logs': normal_logs,
         'normal_percentage': normal_percentage,
-        'timestamps': json.dumps(timestamps),
-        'cpu_data': json.dumps(cpu_data),
-        'temp_data': json.dumps(temp_data),
-        'memory_data': json.dumps(memory_data),
+        'timestamps': json.dumps([l.timestamp.strftime('%H:%M:%S') for l in chart_data]),
+        'cpu_data': json.dumps([l.cpu_usage for l in chart_data]),
+        'temp_data': json.dumps([l.temperature for l in chart_data]),
+        'memory_data': json.dumps([l.memory_usage for l in chart_data]),
         'filter_type': filter_type,
         'date_range': date_range,
+        'switch_id': switch_id,
+        'switches': switches,
     }
 
     return render(request, 'monitor/dashboard.html', context)

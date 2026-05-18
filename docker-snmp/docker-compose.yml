@@ -1,0 +1,36 @@
+services:
+  switch1:
+    build: .
+    container_name: switch-core-01
+    ports:
+      - "1161:161/udp"
+    environment:
+      - SWITCH_NAME=Core Switch 01
+      - CPU_MIN=60
+      - CPU_MAX=90
+      - TEMP_MIN=55
+      - TEMP_MAX=80
+
+  switch2:
+    build: .
+    container_name: switch-access-02
+    ports:
+      - "1162:161/udp"
+    environment:
+      - SWITCH_NAME=Access Switch 02
+      - CPU_MIN=20
+      - CPU_MAX=50
+      - TEMP_MIN=30
+      - TEMP_MAX=55
+
+  switch3:
+    build: .
+    container_name: switch-dist-03
+    ports:
+      - "1163:161/udp"
+    environment:
+      - SWITCH_NAME=Distribution Switch 03
+      - CPU_MIN=40
+      - CPU_MAX=75
+      - TEMP_MIN=40
+      - TEMP_MAX=70
