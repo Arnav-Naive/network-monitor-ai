@@ -7,6 +7,10 @@ import csv
 from django.http import HttpResponse
 from datetime import timedelta
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import SwitchMetricSerializer, SwitchSerializer
+
 def dashboard_view(request):
     filter_type = request.GET.get('filter', 'all')
     date_range = request.GET.get('range', '24h')
@@ -83,3 +87,43 @@ def export_csv(request):
         ])
 
     return response
+
+
+@api_view(['GET'])
+def api_metrics(request):
+    """Returns last 100 metrics as JSON"""
+    switch_id = request.GET.get('switch', None)
+    
+    metrics = SwitchMetric.objects.select_related('switch').all()[:100]
+    
+    if switch_id:
+        metrics = SwitchMetric.objects.filter(switch_id=switch_id)[:100]
+    
+    serializer = SwitchMetricSerializer(metrics, many=True)
+    return Response({
+        'count': len(serializer.data),
+        'results': serializer.data
+    })
+
+@api_view(['GET'])
+def api_switches(request):
+    """Returns all switches as JSON"""
+    switches = Switch.objects.filter(is_active=True)
+    serializer = SwitchSerializer(switches, many=True)
+    return Response({
+        'count': switches.count(),
+        'results': serializer.data
+    })
+
+@api_view(['GET'])
+def api_anomalies(request):
+    """Returns only anomaly records"""
+    anomalies = SwitchMetric.objects.select_related('switch').exclude(
+        anomalies__isnull=True
+    ).exclude(anomalies='None')[:50]
+    
+    serializer = SwitchMetricSerializer(anomalies, many=True)
+    return Response({
+        'count': len(serializer.data),
+        'results': serializer.data
+    })

@@ -129,7 +129,7 @@ async def monitor_loop():
         switches = await get_switches()
 
         tasks = [poll_switch(switch) for switch in switches]
-        results = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks) # polls all 3 switches simultaneously (faster and realistic)
 
         for switch, data in zip(switches, results):
             anomalies = detect_anomaly(data)
