@@ -105,6 +105,10 @@ def get_switches():
 
 @sync_to_async
 def save_metric(switch, data, anomalies):
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    import json
+
     metric = SwitchMetric.objects.create(
         switch=switch,
         cpu_usage=data['cpu_usage'],
@@ -118,8 +122,28 @@ def save_metric(switch, data, anomalies):
         rx_rate=data['rx_rate'],
         anomalies=', '.join(anomalies) if anomalies else None
     )
+
     if anomalies and 'ML DETECTED' in ', '.join(anomalies):
         send_anomaly_alert(metric, anomalies)
+
+    # Push to WebSocket
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        'metrics',
+        {
+            'type': 'metrics_update',
+            'data': {
+                'switch': switch.name,
+                'cpu': data['cpu_usage'],
+                'memory': data['memory_usage'],
+                'temperature': data['temperature'],
+                'bandwidth': data['bandwidth'],
+                'anomalies': ', '.join(anomalies) if anomalies else None,
+                'timestamp': metric.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+        }
+    )
+
     return metric
 
 async def monitor_loop():
