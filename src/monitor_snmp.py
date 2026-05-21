@@ -107,7 +107,6 @@ def get_switches():
 def save_metric(switch, data, anomalies):
     from channels.layers import get_channel_layer
     from asgiref.sync import async_to_sync
-    import json
 
     metric = SwitchMetric.objects.create(
         switch=switch,
@@ -127,22 +126,26 @@ def save_metric(switch, data, anomalies):
         send_anomaly_alert(metric, anomalies)
 
     # Push to WebSocket
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        'metrics',
-        {
-            'type': 'metrics_update',
-            'data': {
-                'switch': switch.name,
-                'cpu': data['cpu_usage'],
-                'memory': data['memory_usage'],
-                'temperature': data['temperature'],
-                'bandwidth': data['bandwidth'],
-                'anomalies': ', '.join(anomalies) if anomalies else None,
-                'timestamp': metric.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+    try:
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'metrics',
+            {
+                'type': 'metrics_update',
+                'data': {
+                    'switch': switch.name,
+                    'cpu': data['cpu_usage'],
+                    'memory': data['memory_usage'],
+                    'temperature': data['temperature'],
+                    'bandwidth': data['bandwidth'],
+                    'anomalies': ', '.join(anomalies) if anomalies else None,
+                    'timestamp': metric.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                }
             }
-        }
-    )
+        )
+        print(f"  📡 WebSocket push sent")
+    except Exception as e:
+        print(f"  ❌ WebSocket push failed: {e}")
 
     return metric
 

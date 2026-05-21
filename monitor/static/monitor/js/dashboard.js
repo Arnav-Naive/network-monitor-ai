@@ -6,9 +6,9 @@ ws.onopen = function() {
 };
 
 ws.onmessage = function(event) {
+    console.log('WS message received:', event.data);
     const data = JSON.parse(event.data);
     addTableRow(data);
-    updateSummaryCards();
 };
 
 ws.onclose = function() {

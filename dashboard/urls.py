@@ -17,6 +17,8 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from monitor import views
 
 urlpatterns = [
@@ -26,4 +28,4 @@ urlpatterns = [
     path('api/metrics/', views.api_metrics, name='api_metrics'),
     path('api/switches/', views.api_switches, name='api_switches'),
     path('api/anomalies/', views.api_anomalies, name='api_anomalies'),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
