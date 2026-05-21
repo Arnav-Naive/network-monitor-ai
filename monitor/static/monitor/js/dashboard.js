@@ -13,7 +13,7 @@ ws.onmessage = function(event) {
 
 ws.onclose = function() {
     console.log('WebSocket disconnected — falling back to refresh');
-    setTimeout(function(){ location.reload(); }, 5000);
+    setTimeout(function(){ location.reload(); }, 10000);
 };
 
 function addTableRow(data) {
