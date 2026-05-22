@@ -146,3 +146,6 @@ CHANNEL_LAYERS = {
         },
     }
 }
+
+ALLOWED_HOSTS = ['network-monitor-ai-production.up.railway.app', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://network-monitor-ai-production.up.railway.app']
