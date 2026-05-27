@@ -33,7 +33,7 @@ function addTableRow(data) {
             <td>${data.timestamp}</td>
             <td>${data.switch}</td>
             <td>${data.cpu}</td>
-            <td>—</td>
+            <td>${data.memory}</td>
             <td>${data.temperature}</td>
             <td>${data.bandwidth}</td>
             <td>1</td>
