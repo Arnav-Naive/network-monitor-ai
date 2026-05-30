@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard_view, name='dashboard'),
     path('export/', views.export_csv, name='export_csv'),
+    path('switch/<int:switch_id>/', views.switch_detail_view, name='switch_detail'),  # added switch detail view
     path('api/metrics/', views.api_metrics, name='api_metrics'),
     path('api/switches/', views.api_switches, name='api_switches'),
     path('api/anomalies/', views.api_anomalies, name='api_anomalies'),
