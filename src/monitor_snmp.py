@@ -24,12 +24,12 @@ OIDS = {
     'bandwidth': '1.3.6.1.4.1.8072.1.3.2.3.1.2.9.98.97.110.100.119.105.100.116.104',
 }
 
-async def get_snmp_value(ip, port, oid):
+async def get_snmp_value(ip, port, oid, community='public'):
     try:
         snmpEngine = SnmpEngine()
         errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
             snmpEngine,
-            CommunityData('public'),
+            CommunityData(community),  # hardcoded 'public' ki jagah
             await UdpTransportTarget.create((ip, port), timeout=2, retries=1),
             ContextData(),
             ObjectType(ObjectIdentity(oid))
@@ -51,12 +51,13 @@ async def poll_switch(switch):
     """Poll all metrics from one switch"""
     ip = switch.ip_address
     port = switch.port
+    community = switch.community_string  # database se lega ab
 
-    cpu = await get_snmp_value(ip, port, OIDS['cpu']) or 50
-    memory = await get_snmp_value(ip, port, OIDS['memory']) or 60
-    temp = await get_snmp_value(ip, port, OIDS['temperature']) or 45
-    bandwidth = await get_snmp_value(ip, port, OIDS['bandwidth']) or 500
-
+    cpu = await get_snmp_value(ip, port, OIDS['cpu'], community) or 50
+    memory = await get_snmp_value(ip, port, OIDS['memory'], community) or 60
+    temp = await get_snmp_value(ip, port, OIDS['temperature'], community) or 45
+    bandwidth = await get_snmp_value(ip, port, OIDS['bandwidth'], community) or 500
+    
     return {
         "cpu_usage": cpu,
         "memory_usage": memory,
