@@ -6,6 +6,8 @@ class Switch(models.Model):
     port = models.IntegerField(default=161)
     location = models.CharField(max_length=200, blank=True)
     is_active = models.BooleanField(default=True)
+    community_string = models.CharField(max_length=100, default='public')  # ADD THIS
+    is_demo = models.BooleanField(default=True)  # ADD THIS — True = Docker, False = real switch
     
     def __str__(self):
         return f"{self.name} ({self.ip_address})"
