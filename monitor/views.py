@@ -61,6 +61,7 @@ def dashboard_view(request):
         'date_range': date_range,
         'switch_id': switch_id,
         'switches': switches,
+        'has_real_switches': Switch.objects.filter(is_demo=False, is_active=True).exists(),  # -> Add this line to check for real switches : it will be used in the template to conditionally show the "Add Switch" button
     }
 
     return render(request, 'monitor/dashboard.html', context)
