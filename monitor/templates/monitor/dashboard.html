@@ -113,7 +113,7 @@
                     {% for log in logs %}
                     <tr>
                         <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
-                        <td>{{ log.switch.name }}</td>
+                        <td><a href="/switch/{{ log.switch.id }}/" style="color: #4CAF50; text-decoration: none; font-weight: 600;">{{ log.switch.name }}</a></td>
                         <td>{{ log.cpu_usage }}</td>
                         <td>{{ log.memory_usage }}</td>
                         <td>{{ log.temperature }}</td>

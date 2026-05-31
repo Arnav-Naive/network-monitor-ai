@@ -132,21 +132,23 @@ def api_anomalies(request):
 def switch_detail_view(request, switch_id):
     switch = Switch.objects.get(id=switch_id)
     
-    # Last 100 readings of this switch
-    metrics = SwitchMetric.objects.filter(switch=switch).order_by('-timestamp')[:100]
-    
+    # Last 100 readings of this switch    
+    metrics_qs = SwitchMetric.objects.filter(switch=switch).order_by('-timestamp')
+
     # Stats
-    total = metrics.count()
-    anomaly_count = metrics.filter(anomalies__isnull=False).exclude(anomalies='None').count()
+    total = metrics_qs.count()
+    anomaly_count = metrics_qs.filter(anomalies__isnull=False).exclude(anomalies='None').count()
     normal_count = total - anomaly_count
     health = round((normal_count / total * 100), 1) if total > 0 else 0
-    
+
     # Latest reading
-    latest = metrics.first()
-    
-    # Chart data (last 50, reversed for chronological order)
-    chart_data = list(metrics[:50])
+    latest = metrics_qs.first()
+
+    # Chart data
+    chart_data = list(metrics_qs[:50])
     chart_data.reverse()
+
+    metrics = metrics_qs[:100]  # slice at the end
     
     context = {
         'switch': switch,
