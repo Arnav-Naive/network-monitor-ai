@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ switch.name }} — Detail</title>
+    <link rel="stylesheet" href="{% static 'monitor/css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .back-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #666;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .back-btn:hover { background: #444; }
+        .switch-header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .switch-header h2 { color: #333; margin-bottom: 5px; }
+        .switch-meta { color: #666; font-size: 14px; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .badge-demo { background: #fff3cd; color: #856404; }
+        .badge-live { background: #e8f5e9; color: #2e7d32; }
+        .latest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .latest-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .latest-card h4 { color: #666; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+        .latest-card .value { font-size: 28px; font-weight: bold; color: #333; }
+        .latest-card.warning .value { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <a href="/" class="back-btn">← Back to Dashboard</a>
+
+        <!-- Switch Header -->
+        <div class="switch-header">
+            <h2>
+                🔌 {{ switch.name }}
+                {% if switch.is_demo %}
+                    <span class="badge badge-demo">Demo</span>
+                {% else %}
+                    <span class="badge badge-live">Live</span>
+                {% endif %}
+            </h2>
+            <div class="switch-meta">
+                📍 {{ switch.location }} &nbsp;|&nbsp;
+                🌐 {{ switch.ip_address }}:{{ switch.port }} &nbsp;|&nbsp;
+                🔑 Community: {{ switch.community_string }}
+            </div>
+        </div>
+
+        <!-- Latest Reading Cards -->
+        {% if latest %}
+        <div class="latest-grid">
+            <div class="latest-card {% if latest.cpu_usage > 85 %}warning{% endif %}">
+                <h4>CPU Usage</h4>
+                <div class="value">{{ latest.cpu_usage }}%</div>
+            </div>
+            <div class="latest-card">
+                <h4>Memory</h4>
+                <div class="value">{{ latest.memory_usage }}%</div>
+            </div>
+            <div class="latest-card {% if latest.temperature > 78 %}warning{% endif %}">
+                <h4>Temperature</h4>
+                <div class="value">{{ latest.temperature }}°C</div>
+            </div>
+            <div class="latest-card">
+                <h4>Bandwidth</h4>
+                <div class="value">{{ latest.bandwidth }}</div>
+            </div>
+            <div class="latest-card">
+                <h4>Health</h4>
+                <div class="value">{{ health }}%</div>
+            </div>
+            <div class="latest-card anomalies">
+                <h4>Anomalies</h4>
+                <div class="value">{{ anomaly_count }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <h2>📊 CPU, Temperature & Memory (Last 50 readings)</h2>
+            <canvas id="metricsChart"></canvas>
+        </div>
+
+        <div class="chart-container" style="margin-top: 20px;">
+            <h2>📶 Bandwidth Utilization (Last 50 readings)</h2>
+            <canvas id="bandwidthChart"></canvas>
+        </div>
+
+        <!-- Hidden data -->
+        <div id="chartData"
+             data-timestamps='{{ timestamps|safe }}'
+             data-cpu='{{ cpu_data|safe }}'
+             data-temp='{{ temp_data|safe }}'
+             data-memory='{{ memory_data|safe }}'
+             data-bandwidth='{{ bandwidth_data|safe }}'
+             style="display:none;">
+        </div>
+
+        <!-- Metrics Table -->
+        <div class="table-container" style="margin-top: 20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>CPU (%)</th>
+                        <th>Memory (%)</th>
+                        <th>Temp (°C)</th>
+                        <th>Bandwidth</th>
+                        <th>TX</th>
+                        <th>RX</th>
+                        <th>Anomalies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in metrics %}
+                    <tr>
+                        <td>{{ m.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ m.cpu_usage }}</td>
+                        <td>{{ m.memory_usage }}</td>
+                        <td>{{ m.temperature }}</td>
+                        <td>{{ m.bandwidth }}</td>
+                        <td>{{ m.tx_rate }}</td>
+                        <td>{{ m.rx_rate }}</td>
+                        <td>
+                            {% if m.anomalies and m.anomalies != 'None' %}
+                                {% if 'ML DETECTED' in m.anomalies %}
+                                    <span class="ml-anomaly">{{ m.anomalies }}</span>
+                                {% else %}
+                                    <span class="anomaly">{{ m.anomalies }}</span>
+                                {% endif %}
+                            {% else %}
+                                None
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const chartEl = document.getElementById('chartData');
+        const timestamps = JSON.parse(chartEl.dataset.timestamps);
+        const cpuData = JSON.parse(chartEl.dataset.cpu);
+        const tempData = JSON.parse(chartEl.dataset.temp);
+        const memoryData = JSON.parse(chartEl.dataset.memory);
+        const bandwidthData = JSON.parse(chartEl.dataset.bandwidth);
+
+        // Metrics Chart
+        new Chart(document.getElementById('metricsChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: [
+                    { label: 'CPU (%)', data: cpuData, borderColor: 'rgb(255,99,132)', backgroundColor: 'rgba(255,99,132,0.1)', tension: 0.4 },
+                    { label: 'Temperature (°C)', data: tempData, borderColor: 'rgb(255,159,64)', backgroundColor: 'rgba(255,159,64,0.1)', tension: 0.4 },
+                    { label: 'Memory (%)', data: memoryData, borderColor: 'rgb(75,192,192)', backgroundColor: 'rgba(75,192,192,0.1)', tension: 0.4 }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+
+        // Bandwidth Bar Chart
+        new Chart(document.getElementById('bandwidthChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: timestamps,
+                datasets: [
+                    { label: 'Bandwidth (Mbps)', data: bandwidthData, backgroundColor: 'rgba(102,126,234,0.7)', borderColor: 'rgb(102,126,234)', borderWidth: 1 }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+    </script>
+</body>
+</html>

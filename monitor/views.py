@@ -61,6 +61,7 @@ def dashboard_view(request):
         'date_range': date_range,
         'switch_id': switch_id,
         'switches': switches,
+        'has_real_switches': Switch.objects.filter(is_demo=False, is_active=True).exists(),  # ADD THIS
     }
 
     return render(request, 'monitor/dashboard.html', context)
@@ -127,3 +128,38 @@ def api_anomalies(request):
         'count': len(serializer.data),
         'results': serializer.data
     })
+    
+def switch_detail_view(request, switch_id):
+    switch = Switch.objects.get(id=switch_id)
+    
+    # Last 100 readings of this switch
+    metrics = SwitchMetric.objects.filter(switch=switch).order_by('-timestamp')[:100]
+    
+    # Stats
+    total = metrics.count()
+    anomaly_count = metrics.filter(anomalies__isnull=False).exclude(anomalies='None').count()
+    normal_count = total - anomaly_count
+    health = round((normal_count / total * 100), 1) if total > 0 else 0
+    
+    # Latest reading
+    latest = metrics.first()
+    
+    # Chart data (last 50, reversed for chronological order)
+    chart_data = list(metrics[:50])
+    chart_data.reverse()
+    
+    context = {
+        'switch': switch,
+        'metrics': metrics,
+        'total': total,
+        'anomaly_count': anomaly_count,
+        'health': health,
+        'latest': latest,
+        'timestamps': json.dumps([m.timestamp.strftime('%H:%M:%S') for m in chart_data]),
+        'cpu_data': json.dumps([m.cpu_usage for m in chart_data]),
+        'temp_data': json.dumps([m.temperature for m in chart_data]),
+        'memory_data': json.dumps([m.memory_usage for m in chart_data]),
+        'bandwidth_data': json.dumps([m.bandwidth for m in chart_data]),
+    }
+    
+    return render(request, 'monitor/switch_detail.html', context)

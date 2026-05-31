@@ -10,6 +10,16 @@
     <div class="container">
         <header>
             <h1>🔧 Network Switch Monitor — AI-Powered</h1>
+            
+            {% if has_real_switches %}
+                <div style="margin-top: 8px; padding: 6px 14px; background: #e8f5e9; border-left: 4px solid #4CAF50; border-radius: 4px; display: inline-block;">
+                    🟢 <strong>Live Mode</strong> — Real switch data
+                </div>
+            {% else %}
+                <div style="margin-top: 8px; padding: 6px 14px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; display: inline-block;">
+                    🟡 <strong>Demo Mode</strong> — Simulated Docker switches
+                </div>
+            {% endif %}
         </header>
         <!-- Export Button -->
         <div style="text-align: right; margin-bottom: 15px;">
