@@ -11,6 +11,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import SwitchMetricSerializer, SwitchSerializer
 
+from .models import SwitchMetric, Switch, AlertHistory
+
 def dashboard_view(request):
     filter_type = request.GET.get('filter', 'all')
     date_range = request.GET.get('range', '24h')
@@ -165,3 +167,17 @@ def switch_detail_view(request, switch_id):
     }
     
     return render(request, 'monitor/switch_detail.html', context)
+
+def alert_history_view(request):
+    alerts = AlertHistory.objects.select_related('switch').all()[:100]
+    
+    total_alerts = AlertHistory.objects.count()
+    email_sent_count = AlertHistory.objects.filter(email_sent=True).count()
+    
+    context = {
+        'alerts': alerts,
+        'total_alerts': total_alerts,
+        'email_sent_count': email_sent_count,
+    }
+    
+    return render(request, 'monitor/alert_history.html', context)

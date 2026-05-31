@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alert History</title>
+    <link rel="stylesheet" href="{% static 'monitor/css/dashboard.css' %}">
+</head>
+<body>
+    <div class="container">
+        
+        <a href="/" class="back-btn" style="display:inline-block; padding:8px 16px; background:#666; color:white; border-radius:6px; text-decoration:none; margin-bottom:15px; font-weight:600;">← Back to Dashboard</a>
+
+        <header>
+            <h1>🚨 Alert History</h1>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="stats-grid" style="margin-top: 20px;">
+            <div class="stat-card total">
+                <h3>Total Alerts</h3>
+                <div class="stat-value">{{ total_alerts }}</div>
+            </div>
+            <div class="stat-card anomalies">
+                <h3>Emails Sent</h3>
+                <div class="stat-value">{{ email_sent_count }}</div>
+            </div>
+            <div class="stat-card normal">
+                <h3>Failed Emails</h3>
+                <div class="stat-value">{{ total_alerts|add:"-"|add:email_sent_count }}</div>
+            </div>
+        </div>
+
+        <!-- Alerts Table -->
+        <div class="table-container" style="margin-top: 20px;">
+            {% if alerts %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Switch</th>
+                        <th>Anomaly Type</th>
+                        <th>CPU (%)</th>
+                        <th>Temp (°C)</th>
+                        <th>Email Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td>{{ alert.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td><a href="/switch/{{ alert.switch.id }}/" style="color:#4CAF50; text-decoration:none; font-weight:600;">{{ alert.switch.name }}</a></td>
+                        <td>
+                            {% if 'ML DETECTED' in alert.anomaly_type %}
+                                <span class="ml-anomaly">{{ alert.anomaly_type }}</span>
+                            {% else %}
+                                <span class="anomaly">{{ alert.anomaly_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ alert.cpu_usage }}</td>
+                        <td>{{ alert.temperature }}</td>
+                        <td>
+                            {% if alert.email_sent %}
+                                <span style="color:#4CAF50; font-weight:600;">✅ Sent</span>
+                            {% else %}
+                                <span style="color:#f44336; font-weight:600;">❌ Failed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    <h3>No alerts yet</h3>
+                    <p>Alerts will appear here when ML anomalies are detected.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</body>
+</html>

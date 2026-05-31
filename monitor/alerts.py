@@ -2,7 +2,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-from .models import SwitchMetric
+from .models import SwitchMetric, AlertHistory
 
 # Track last alert time (in memory)
 last_alert_time = None
@@ -42,8 +42,25 @@ Login to dashboard: http://localhost:8000
             fail_silently=False,
         )
         last_alert_time = timezone.now()
+        
+        # Save to alert history
+        AlertHistory.objects.create(
+            switch=metric.switch,
+            anomaly_type=', '.join(anomalies),
+            cpu_usage=metric.cpu_usage,
+            temperature=metric.temperature,
+            email_sent=True
+        )
         print(f"  📧 Alert email sent!")
         return True
     except Exception as e:
+        # Save failed alert to history too
+        AlertHistory.objects.create(
+            switch=metric.switch,
+            anomaly_type=', '.join(anomalies),
+            cpu_usage=metric.cpu_usage,
+            temperature=metric.temperature,
+            email_sent=False
+        )
         print(f"  ❌ Email failed: {e}")
         return False
