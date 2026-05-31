@@ -29,4 +29,5 @@ urlpatterns = [
     path('api/metrics/', views.api_metrics, name='api_metrics'),
     path('api/switches/', views.api_switches, name='api_switches'),
     path('api/anomalies/', views.api_anomalies, name='api_anomalies'),
+    path('alerts/', views.alert_history_view, name='alert_history'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

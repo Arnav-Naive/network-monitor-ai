@@ -31,3 +31,17 @@ class SwitchMetric(models.Model):
     
     def __str__(self):
         return f"{self.switch} - {self.timestamp} - CPU: {self.cpu_usage}%"
+    
+class AlertHistory(models.Model):
+    switch = models.ForeignKey(Switch, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    anomaly_type = models.CharField(max_length=200)
+    cpu_usage = models.IntegerField()
+    temperature = models.IntegerField()
+    email_sent = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.switch.name} — {self.anomaly_type} — {self.timestamp}"
