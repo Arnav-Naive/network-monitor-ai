@@ -104,3 +104,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Per-Switch Bandwidth Bar Chart
+const bandwidthEl = document.getElementById('bandwidthData');
+if (bandwidthEl) {
+    const switchData = JSON.parse(bandwidthEl.dataset.bandwidth);
+    const switchNames = switchData.map(s => s.name);
+    const bandwidthValues = switchData.map(s => s.bandwidth);
+    const txValues = switchData.map(s => s.tx);
+    const rxValues = switchData.map(s => s.rx);
+
+    new Chart(document.getElementById('bandwidthBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: switchNames,
+            datasets: [
+                {
+                    label: 'Bandwidth (Mbps)',
+                    data: bandwidthValues,
+                    backgroundColor: 'rgba(102,126,234,0.7)',
+                    borderColor: 'rgb(102,126,234)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'TX Rate (Mbps)',
+                    data: txValues,
+                    backgroundColor: 'rgba(75,192,192,0.7)',
+                    borderColor: 'rgb(75,192,192)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'RX Rate (Mbps)',
+                    data: rxValues,
+                    backgroundColor: 'rgba(255,159,64,0.7)',
+                    borderColor: 'rgb(255,159,64)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}

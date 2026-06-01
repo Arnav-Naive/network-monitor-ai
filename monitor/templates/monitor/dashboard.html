@@ -91,6 +91,17 @@
              data-memory='{{ memory_data|safe }}'
              style="display: none;">
         </div>
+        <!-- Per-Switch Bandwidth Bar Chart -->
+        <div class="chart-container" style="margin-top: 20px;">
+            <h2>📶 Per-Switch Bandwidth Comparison (Latest Reading)</h2>
+            <canvas id="bandwidthBarChart"></canvas>
+        </div>
+
+        <!-- Hidden bandwidth data -->
+        <div id="bandwidthData" 
+            data-bandwidth='{{ switch_bandwidth|safe }}'
+            style="display:none;">
+        </div>
         
         <!-- Table -->
         <div class="table-container">
