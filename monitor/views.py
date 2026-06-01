@@ -49,6 +49,17 @@ def dashboard_view(request):
     normal_percentage = round((normal_logs / total_logs * 100), 1) if total_logs > 0 else 0
 
     switches = Switch.objects.filter(is_active=True)
+    
+    # Per-switch bandwidth data for bar chart
+    switch_bandwidth = []
+    for s in switches:
+        latest_metric = SwitchMetric.objects.filter(switch=s).order_by('-timestamp').first()
+        switch_bandwidth.append({
+            'name': s.name,
+            'bandwidth': latest_metric.bandwidth if latest_metric else 0,
+            'tx': latest_metric.tx_rate if latest_metric else 0,
+            'rx': latest_metric.rx_rate if latest_metric else 0,
+        })
 
     context = {
         'logs': logs,
@@ -64,6 +75,7 @@ def dashboard_view(request):
         'switch_id': switch_id,
         'switches': switches,
         'has_real_switches': Switch.objects.filter(is_demo=False, is_active=True).exists(),  # ADD THIS
+        'switch_bandwidth': json.dumps(switch_bandwidth), # what this does is it creates a list of dict objects where each dict contains the name of switch and its latest bandwidth, tx_rate and rx_rate. This data is then converted to JSON format so that it can be easily used in the frontend to create a bar chart showing the bandwidth usage of each switch.
     }
 
     return render(request, 'monitor/dashboard.html', context)
