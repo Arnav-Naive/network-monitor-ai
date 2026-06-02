@@ -4,80 +4,98 @@
 
 **AI-Powered Network Switch Monitoring System**
 
-A system that collects network switch metrics, uses machine learning to detect unusual patterns, and displays alerts on a web dashboard.
+A system that polls 3 virtual network switches every 10 seconds via real SNMP protocol, stores metrics in cloud PostgreSQL, detects anomalies using ML, and displays live updates on a dashboard via WebSocket.
 
 ---
 
-## Key Components
+## Current Stack
 
-### 1. Data Collection (`monitor_db.py`)
-- Polls switch every 5 seconds (simulated data currently)
-- Collects 9 metrics: CPU, Memory, Temp, Bandwidth, Interface status, CRC errors, Reliability, TX/RX rates
-- Saves to SQLite database
-
-### 2. Machine Learning (`train_model.py` + Isolation Forest)
-- Trains on historical data (currently 341 samples)
-- Learns what "normal" behavior looks like
-- No hardcoded thresholds needed
-- Can detect subtle anomalies that threshold alerts miss
-
-### 3. Web Dashboard (Django)
-- Real-time view of all metrics
-- Auto-refreshes every 10 seconds
-- Color-coded alerts:
-  - **Red:** Threshold violations (HIGH CPU, PORT DOWN)
-  - **Yellow:** ML-detected anomalies (pattern-based)
+| Component | Technology |
+|-----------|-----------|
+| Monitor Script | `src/monitor_snmp.py` — pysnmp v7 async |
+| Database | PostgreSQL via Supabase |
+| ML Model | Isolation Forest (scikit-learn) — 537+ samples |
+| Dashboard | Django + Chart.js + WebSocket |
+| Real-time | Django Channels + Redis + Daphne |
+| API | Django REST Framework — 3 endpoints |
+| Alerts | Gmail SMTP + AlertHistory model |
+| Containers | Docker — 3 virtual switches |
 
 ---
 
-## Why ML is Better Than Thresholds
+## Demo Flow (10 minutes)
 
-**Threshold Approach (Old):**
-if CPU > 80%:
-alert()
-Problem: 80% might be normal for one switch, abnormal for another.
+### Terminal — show live monitoring
 
-**ML Approach (My System):**
+python src/monitor_snmp.py
 
-Model learns: Switch A normally runs 75-85% CPU
-New reading: 90% → ANOMALY (unusual for this switch)
+> "This polls 3 virtual switches every 10 seconds via real SNMP protocol —
+> same protocol used by SolarWinds and enterprise tools."
 
-Adaptive, context-aware, fewer false alarms.
+### Dashboard — localhost:8000
+> "New rows appear instantly — no page refresh. That's WebSocket pushing
+> data from the monitor script to the browser in real time."
 
----
+### Per-Switch Detail Page — click any switch name
+> "Each switch has its own dedicated page — health %, anomaly count,
+> line chart for CPU/temp/memory, bar chart for bandwidth."
 
-## Current Status
+### Anomalies Only filter
+> "ML-detected anomalies in yellow, threshold alerts in red.
+> The model learned each switch's individual baseline."
 
-✅ Database integration working  
-✅ ML model trained and detecting anomalies  
-✅ Dashboard functional with auto-refresh  
-✅ 341 training samples collected  
+### Alert History — /alerts/
+> "Every ML alert is logged here with email delivery status.
+> Full audit trail."
 
-🔄 **Next Steps:**
-1. Connect to real switches via pysnmp (need switch IP + SNMP community string)
-2. Add data visualization (charts showing trends)
-3. Deploy to test server for remote access
+### API — /api/anomalies/
+> "REST API exposes all data as JSON — any frontend or external
+> system can consume this."
 
----
-
-## What I Need
-
-1. **Test switch access:**
-   - IP address of one switch
-   - SNMP community string (read-only)
-   - OIDs for the metrics we're monitoring
-
-2. **Historical data (optional):**
-   - If you can export CSV of past switch metrics, I can train on real patterns
+### GitHub — show commit history + PRs
+> "Daily commits over 5 weeks, proper feature branch workflow —
+> PR for every feature."
 
 ---
 
-## Demo Points
+## Real Switch — How to Connect
 
-1. Show monitor running in terminal (live data collection)
-2. Show database admin (341 entries)
-3. Show dashboard with ML anomaly highlighting
-4. Explain how Isolation Forest learns patterns
-5. Show code structure (clean, modular, professional)
+Admin panel → Switches → Add Switch:
+- **Name:** any descriptive name
+- **IP Address:** switch's IP on your network
+- **Port:** 161 (standard SNMP)
+- **Community String:** switch's read-only community string
+- **is_demo:** uncheck (False)
 
-**Time needed for demo:** 10 minutes
+System automatically uses the real switch's community string.
+Dashboard shows 🟢 Live Mode when any real switch is active.
+
+---
+
+## Why ML Over Thresholds
+
+| Threshold | ML (Isolation Forest) |
+|-----------|----------------------|
+| Fixed: CPU > 80% = alert | Learned: 80% is normal for Core Switch |
+| Same rule for all switches | Per-switch baseline |
+| False alarms on busy switches | Context-aware detection |
+| Can't catch subtle patterns | Catches unusual combinations |
+
+---
+
+## Key Technical Answers
+
+**Why Daphne instead of runserver?**
+Django's dev server doesn't support WebSocket. Daphne is an ASGI server.
+
+**Why Redis?**
+InMemoryChannelLayer only works within one process. Monitor script and
+Daphne are separate processes — Redis is the shared message broker.
+
+**Why async/await in monitor script?**
+pysnmp v7 is fully async. asyncio.gather() polls all 3 switches
+simultaneously instead of sequentially.
+
+**Why sync_to_async?**
+Django ORM is synchronous. Needed to call it from inside the async
+monitor loop without blocking the event loop.

@@ -1,49 +1,48 @@
 # System Architecture
 
-## High-Level Overview
-
-```mermaid
-flowchart TD
-    A[Network Switch] -->|SNMP Polling<br/>Every 5 seconds| B[Monitor Script<br/>monitor_db.py]
-    B -->|Collect Metrics| C[Data Processing]
-    C -->|Save| D[(SQLite Database<br/>SwitchMetric Table)]
-    D -->|Read Data| E[ML Training<br/>train_model.py]
-    E -->|Generate| F[Trained Model<br/>anomaly_model.pkl]
-    F -->|Load Model| B
-    B -->|Detect Anomalies| G[Alert System]
-    D -->|Query Data| H[Django Web Server]
-    H -->|Render| I[Dashboard<br/>localhost:8000]
-    I -->|Auto-refresh<br/>Every 10 sec| H
-    
-    style A fill:#e1f5ff
-    style D fill:#fff4e1
-    style F fill:#ffe1e1
-    style I fill:#e1ffe1
-    style D fill:#fff4e1,color:#000
-    style F fill:#ffe1e1,color:#000
-    style I fill:#e1ffe1,color:#000
-```
+## Current Stack (Week 5)
+3 Docker Containers (virtual switches)
+↓ SNMP/UDP (asyncio.gather — simultaneous)
+src/monitor_snmp.py (polls every 10 seconds)
+↓ saves data
+Supabase PostgreSQL (cloud database)
+↓ reads data          ↓ pushes instantly
+Django Dashboard          Redis (Channel Layer)
+localhost:8000               ↓
+Daphne ASGI Server
+↓
+Browser (WebSocket)
+↓
+if ML anomaly:
+Email Alert + AlertHistory
 
 ## Data Flow
 
-**Phase 1: Data Collection**
-1. Monitor script polls switch metrics (simulated currently)
-2. Collects: CPU, Memory, Temperature, Bandwidth, Interface status, CRC errors, TX/RX rates
-3. Saves to database with timestamp
+**Phase 1: Collection**
+Monitor script polls 3 switches simultaneously via SNMP GET.
+Each switch returns CPU, memory, temperature, bandwidth.
 
-**Phase 2: ML Training**
-1. Training script reads historical data (minimum 50 samples)
-2. Trains Isolation Forest model
-3. Saves trained model to pickle file
+**Phase 2: Detection**
+Two methods run simultaneously:
+- Isolation Forest ML model (learned each switch's baseline)
+- Fixed thresholds (CPU > 85%, temp > 78°C) as backup
 
-**Phase 3: Real-time Detection**
-1. Monitor loads trained model
-2. For each new reading: ML predicts normal (1) or anomaly (-1)
-3. Threshold checks run in parallel (backup)
-4. Anomalies saved to database
+**Phase 3: Storage**
+SwitchMetric saved to PostgreSQL.
+If ML anomaly → AlertHistory record created + email sent.
 
-**Phase 4: Visualization**
-1. Django reads latest data from database
-2. Renders dashboard with metrics table
-3. Highlights ML-detected anomalies in yellow
-4. Page auto-refreshes every 10 seconds
+**Phase 4: Real-time Push**
+channel_layer.group_send() → Redis → Daphne → WebSocket → Browser.
+New row appears in dashboard instantly, no reload.
+
+**Phase 5: Visualization**
+Dashboard: line chart, bandwidth bar chart, filters, summary cards.
+Per-switch pages: individual history, health %, anomaly count.
+
+## Database Tables
+
+| Table | Purpose | Rows (approx) |
+|-------|---------|---------------|
+| Switch | 3 switches with IP, port, community_string | 3 |
+| SwitchMetric | Every 10-second reading | 4000+ |
+| AlertHistory | ML anomaly alerts with email status | grows over time |
