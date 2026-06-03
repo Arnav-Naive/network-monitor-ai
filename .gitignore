@@ -51,3 +51,7 @@ snmp_data/
 docker-snmp/scripts/*.sh.bak
 
 staticfiles/
+
+# Node
+frontend/node_modules/
+frontend/dist/
