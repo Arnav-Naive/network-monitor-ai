@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import SummaryCards from "./SummaryCards"
 import BandwidthChart from "./BandwidthChart"
+import MetricsLineChart from "./MetricsLineChart"
+import LiveFeed from "./LiveFeed"
 
 function App() {
   const [switches, setSwitches] = useState([])
   const [metrics, setMetrics] = useState([])
+  const [liveRows, setLiveRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const wsRef = useRef(null)
 
   useEffect(() => {
     fetch('/api/switches/')
@@ -18,6 +22,21 @@ function App() {
         setMetrics(data.results)
         setLoading(false)
       })
+
+    // WebSocket
+    const ws = new WebSocket(`ws://localhost:8000/ws/metrics/`)
+    wsRef.current = ws
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      setLiveRows(prev => [data, ...prev].slice(0, 20))
+    }
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected')
+    }
+
+    return () => ws.close()
   }, [])
 
   if (loading) return (
@@ -29,9 +48,21 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">🔧 Network Monitor AI</h1>
-        <p className="text-gray-400 text-sm mt-1">AI-Powered Switch Monitoring — Tata Steel Internship</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">🔧 Network Monitor AI</h1>
+          <p className="text-gray-400 text-sm mt-1">AI-Powered Switch Monitoring — Tata Steel Internship</p>
+        </div>
+        <div className="flex gap-3">
+          <a href="http://localhost:8000/alerts/" target="_blank"
+            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+            🚨 Alert History
+          </a>
+          <a href="http://localhost:8000/export/" target="_blank"
+            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+            ⬇ Export CSV
+          </a>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -51,8 +82,14 @@ function App() {
         ))}
       </div>
 
-      {/* Bandwidth Chart */}
-      <BandwidthChart switches={switches} metrics={metrics} />
+      {/* Charts */}
+      <div className="grid grid-cols-2 gap-6 mb-6">
+        <MetricsLineChart metrics={metrics} />
+        <BandwidthChart switches={switches} metrics={metrics} />
+      </div>
+
+      {/* Live Feed */}
+      <LiveFeed liveRows={liveRows} />
 
       {/* Metrics Table */}
       <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
