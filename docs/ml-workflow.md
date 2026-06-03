@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    A[Database<br/>341 samples] -->|Extract Features| B[Feature Matrix<br/>7 columns x 341 rows]
+    A[Database<br/>537 samples] -->|Extract Features| B[Feature Matrix<br/>7 columns x 537 rows]
     B -->|Feed to Algorithm| C[Isolation Forest<br/>contamination=0.1]
     C -->|Learn Patterns| D[Trained Model]
     D -->|Save to Disk| E[anomaly_model.pkl]

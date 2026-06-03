@@ -11,7 +11,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker)](https://docker.com)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-IsolationForest-orange?style=flat-square&logo=scikitlearn)](https://scikit-learn.org)
 
-*Built during Tata Steel Internship — Week 2 to Week 3*
+*Built during Tata Steel Internship — Week 2 to Week 6*
 
 </div>
 
