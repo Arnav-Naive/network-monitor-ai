@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-key-for-dev')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['network-monitor-ai-production.up.railway.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://network-monitor-ai-production.up.railway.app']
 
 
@@ -87,8 +87,6 @@ DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True,
-        conn_health_checks=True,
     )
 }
 
