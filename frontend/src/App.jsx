@@ -4,6 +4,9 @@ import BandwidthChart from "./BandwidthChart"
 import MetricsLineChart from "./MetricsLineChart"
 import LiveFeed from "./LiveFeed"
 
+const API_BASE = import.meta.env.VITE_API_URL || ''
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 function App() {
   const [switches, setSwitches] = useState([])
   const [metrics, setMetrics] = useState([])
@@ -12,11 +15,11 @@ function App() {
   const wsRef = useRef(null)
 
   useEffect(() => {
-    fetch('/api/switches/')
+    fetch(`${API_BASE}/api/switches/`)
       .then(r => r.json())
       .then(data => setSwitches(data.results))
 
-    fetch('/api/metrics/')
+    fetch(`${API_BASE}/api/metrics/`)
       .then(r => r.json())
       .then(data => {
         setMetrics(data.results)
@@ -24,7 +27,12 @@ function App() {
       })
 
     // WebSocket
-    const ws = new WebSocket(`ws://localhost:8000/ws/metrics/`)
+    const wsUrl = import.meta.env.VITE_API_URL
+      ? `wss://network-monitor-ai.onrender.com/ws/metrics/`
+      : `ws://localhost:8000/ws/metrics/`
+
+    const ws = new WebSocket(wsUrl)
+
     wsRef.current = ws
 
     ws.onmessage = (event) => {
@@ -54,11 +62,11 @@ function App() {
           <p className="text-gray-400 text-sm mt-1">AI-Powered Switch Monitoring — Tata Steel Internship</p>
         </div>
         <div className="flex gap-3">
-          <a href="http://localhost:8000/alerts/" target="_blank"
+          <a href={`${BACKEND_URL}/alerts/`} target="_blank"
             className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
             🚨 Alert History
           </a>
-          <a href="http://localhost:8000/export/" target="_blank"
+          <a href={`${BACKEND_URL}/export/`} target="_blank"
             className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
             ⬇ Export CSV
           </a>
