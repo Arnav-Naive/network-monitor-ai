@@ -1,5 +1,5 @@
 // WebSocket connection
-const ws = new WebSocket(`ws://${window.location.host}/ws/metrics/`);
+const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/metrics/`);
 
 ws.onopen = function() {
     console.log('WebSocket connected');
