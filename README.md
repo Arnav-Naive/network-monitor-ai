@@ -15,6 +15,13 @@
 
 </div>
 
+## 🚀 Live Demo
+
+| Version | URL |
+|---------|-----|
+| Django Dashboard | https://network-monitor-ai.onrender.com |
+| React Dashboard | https://network-monitor-ai.vercel.app |
+
 ---
 
 ## What Is This?
@@ -49,6 +56,7 @@ Think of it as a lightweight, open-source alternative to SolarWinds — built fr
 |-------|-----------|---------|
 | Language | Python 3.11 | Core application |
 | Web Framework | Django 5.0 | Dashboard + API |
+| Frontend (React) | React + Vite + Tailwind + Recharts | Modern dashboard UI |
 | ASGI Server | Daphne 4.0 | WebSocket support |
 | Real-time | Django Channels + Redis | Live dashboard updates |
 | ML | scikit-learn (IsolationForest) | Anomaly detection |
@@ -332,6 +340,7 @@ channels>=4.0
 channels-redis>=4.0
 daphne>=4.0
 redis>=4.0
+django-cors-headers>=4.3
 ```
 
 ---
@@ -363,6 +372,8 @@ Django's ORM is synchronous. Wrapping DB writes with `@sync_to_async` lets them 
 | 12 | Multi-switch support, Docker Compose |
 | 13 | PostgreSQL (Supabase) + REST API |
 | 14–15 | WebSocket live updates, Redis, Daphne |
+| 16-19 | Real switch support, per-switch pages, alert history, bar charts |
+| 20-25 | React frontend, Recharts, Render + Vercel deployment |
 
 Full daily notes in `research/` folder.
 
