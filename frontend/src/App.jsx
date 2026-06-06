@@ -9,9 +9,30 @@ const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 function App() {
   const [switches, setSwitches] = useState([])
+  const [filterType, setFilterType] = useState('all')
+  const [dateRange, setDateRange] = useState('24h')
+  const [switchFilter, setSwitchFilter] = useState('all')
   const [metrics, setMetrics] = useState([])
   const [liveRows, setLiveRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const filteredMetrics = metrics.filter(m => {
+    // Anomaly filter
+    if (filterType === 'anomalies' && (!m.anomalies || m.anomalies === 'None')) return false
+    if (filterType === 'normal' && m.anomalies && m.anomalies !== 'None') return false
+    
+    // Switch filter
+    if (switchFilter !== 'all' && m.switch_name !== switchFilter) return false
+    
+    // Date range filter
+    if (dateRange !== 'all') {
+      const hours = dateRange === '1h' ? 1 : dateRange === '24h' ? 24 : 168
+      const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000)
+      const metricTime = new Date(m.timestamp)
+      if (metricTime < cutoff) return false
+    }
+    
+    return true
+  })
   const wsRef = useRef(null)
 
   useEffect(() => {
@@ -73,8 +94,63 @@ function App() {
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 mb-6 flex flex-wrap gap-6 items-center">
+        
+        {/* Time Range */}
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm font-semibold">Time:</span>
+          {['1h', '24h', '7d', 'all'].map(r => (
+            <button key={r} onClick={() => setDateRange(r)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors
+                ${dateRange === r ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+              {r === '1h' ? 'Last 1h' : r === '24h' ? 'Last 24h' : r === '7d' ? 'Last 7d' : 'All Time'}
+            </button>
+          ))}
+        </div>
+
+        {/* Anomaly Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm font-semibold">Show:</span>
+          {[['all','All'], ['anomalies','Anomalies'], ['normal','Normal']].map(([val, label]) => (
+            <button key={val} onClick={() => setFilterType(val)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors
+                ${filterType === val
+                  ? val === 'anomalies' ? 'bg-red-600 text-white'
+                  : val === 'normal' ? 'bg-blue-600 text-white'
+                  : 'bg-green-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Switch Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm font-semibold">Switch:</span>
+          <button onClick={() => setSwitchFilter('all')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors
+              ${switchFilter === 'all' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+            All
+          </button>
+          {switches.map(sw => (
+            <button key={sw.id} onClick={() => setSwitchFilter(sw.name)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors
+                ${switchFilter === sw.name ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+              {sw.name.replace(' Switch', '').replace(' 0', ' ')}
+            </button>
+          ))}
+        </div>
+
+        {/* Results count */}
+        <div className="ml-auto text-gray-400 text-sm">
+          {filteredMetrics.length} results
+        </div>
+      </div>
+
+
       {/* Summary Cards */}
-      <SummaryCards metrics={metrics} switches={switches} />
+      <SummaryCards metrics={filteredMetrics} switches={switches} />
 
       {/* Switch Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -92,8 +168,8 @@ function App() {
 
       {/* Charts */}
       <div className="grid grid-cols-2 gap-6 mb-6">
-        <MetricsLineChart metrics={metrics} />
-        <BandwidthChart switches={switches} metrics={metrics} />
+        <MetricsLineChart metrics={filteredMetrics} />
+        <BandwidthChart switches={switches} metrics={filteredMetrics} />
       </div>
 
       {/* Live Feed */}
@@ -103,7 +179,7 @@ function App() {
       <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
         <div className="p-4 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Recent Metrics</h2>
-          <span className="text-gray-400 text-sm">{metrics.length} readings</span>
+          <span className="text-gray-400 text-sm">{filteredMetrics.length} readings</span>
         </div>
         <table className="w-full text-sm">
           <thead className="bg-gray-700 text-gray-300">
@@ -117,7 +193,7 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {metrics.map(m => (
+            {filteredMetrics.map(m => (
               <tr key={m.id} className="border-t border-gray-700 hover:bg-gray-750">
                 <td className="p-3 text-green-400 font-medium">{m.switch_name}</td>
                 <td className={`p-3 ${m.cpu_usage > 85 ? 'text-red-400 font-bold' : ''}`}>{m.cpu_usage}</td>
