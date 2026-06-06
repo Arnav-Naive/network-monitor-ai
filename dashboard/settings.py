@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-key-for-dev')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://network-monitor-ai-production.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://network-monitor-ai.onrender.com']
 
 
 # Application definition
