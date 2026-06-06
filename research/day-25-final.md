@@ -2,8 +2,9 @@
 
 **Date:** 2026-06-05
 
-## Live URL
-https://network-monitor-ai.onrender.com
+## Live URLs
+https://network-monitor-ai.onrender.com — Django dashboard
+https://network-monitor-ai.vercel.app — React dashboard
 
 ## What Got Built — Full 6 Week Summary
 
@@ -35,14 +36,12 @@ https://network-monitor-ai.onrender.com
 - Auto-refresh fallback (WebSocket not supported on Render free tier)
 
 ## What Works Only Locally
-- React frontend (localhost:5173)
-- WebSocket live updates
-- Docker SNMP switches
+- WebSocket live updates (Render free tier doesn't support it)
+- Docker SNMP switches (local data collection)
 
 ## Known Limitations
 - Render free tier — 50 sec spin up delay
 - WebSocket falls back to 10 sec refresh on deployed version
-- React not deployed (Vercel pending)
 - anomaly_model.pkl not in git — must run train_model.py on fresh setup
 
 ## Interview One-Liner
